@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oa.dao.OaDataMapper">
+
+    <!--查询近七天内所有的离职及入职员工-->
+    <select id="dataQuery" resultType="com.oa.model.OaStaff">
+        SELECT * FROM oa_staff where date(staff_entrydate) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) or date(staff_resignation) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    </select>
+
+</mapper>

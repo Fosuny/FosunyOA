@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oa.dao.LogMapper">
+
+    <!--增加日志表-->
+    <insert id="writeLog" parameterType="com.oa.model.LogMessage">
+        insert into oa_logmessage(operationUser,path,time,parameter,title,action,dateTime) values(#{operationUser},#{path},#{time},#{parameter},#{title},#{action},#{dateTime})
+    </insert>
+
+    <!--查询日志表-->
+    <select id="logQuery" resultType="com.oa.model.LogMessage">
+            select id,operationUser,path,time,parameter,title,action,dateTime from oa_logmessage
+    </select>
+
+</mapper>

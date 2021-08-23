@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 注入自定义Realm对象(用户IDRealm) -->
+    <bean id="shiroRealm" class="com.oa.realm.ShiroRealm"></bean>
+
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="shiroRealm"></property>
+    </bean>
+
+    <!-- 配置授权属性 -->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager" />
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="org.apache.shiro.SecurityUtils.setSecurityManager" />
+        <property name="arguments" ref="securityManager" />
+    </bean>
+
+    <!-- 配置shiro的过滤器链 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- 安全管理器 -->
+        <property name="securityManager" ref="securityManager" />
+        <!-- 未认证时跳转 -->
+        <property name="loginUrl" value="/loginOA/loginBefore"/>
+        <!-- 未授权时跳转 -->
+        <property name="unauthorizedUrl" value="/abnormalPage/403.jsp" />
+
+        <!-- 配置放行规则 -->
+        <property name="filterChainDefinitions">
+            <value>
+                <!--无需认证的路径-->
+                /= anon
+                <!--/index.jsp=anon-->
+                /loginOA/loginBefore = anon
+                /loginOA/loginAfter = anon
+                /loginOA/loginName = anon
+                /resources/** = anon
+                <!--静态资源路径-->
+                /static/** = anon
+
+                <!--请求/loginOA/logout地址，shiro去清除session-->
+                /loginOA/logout=logout
+
+                <!--权限授权拦截-->
+                <!-- /home/superAdminByFilter = perms["superAdmin"] -->
+
+                <!--需要认证路径-->
+                /** = authc
+            </value>
+        </property>
+    </bean>
+    <bean id="exceptionResolver" class="com.oa.util.MyExceptionResolver"></bean>
+
+    <!-- 开启Shiro注解 end -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor" >
+        <!--解决Controller的RequestMapping映射路径失效问题-->
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+</beans>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oa.dao.RoleMapper">
+
+    <!--角色表数据查询-->
+    <select id="roleQuery" resultType="com.oa.model.OaRole" parameterType="map">
+        select role_id,role_name,role_nickname,role_description,role_status from oa_role
+        <where>
+            role_status != 0
+            <if test="roleName != null">
+                and role_name like '%' #{roleName} '%'
+            </if>
+            <if test="roleNickname != null">
+                and role_nickname '%' #{roleNickname} '%'
+            </if>
+        </where>
+        limit #{curr} , #{limit}
+    </select>
+
+    <!--角色表条数查询-->
+    <select id="roleCount" resultType="int" parameterType="map">
+        select count(role_id) from oa_role
+        <where>
+            role_status != 0
+            <if test="roleName != null">
+                and role_name like '%' #{roleName} '%'
+            </if>
+            <if test="roleNickname != null">
+                and role_nickname '%' #{roleNickname} '%'
+            </if>
+        </where>
+    </select>
+
+    <!--角色表数据查询-->
+    <select id="roleEditData" resultType="com.oa.model.OaRole" parameterType="map">
+        select role_id,role_name,role_nickname,role_description,role_status from oa_role where role_id = #{roleId}
+    </select>
+
+    <!--角色最大ID值查询-->
+    <select id="rolecou" resultType="int">
+            select max(role_id) from oa_role
+    </select>
+
+    <!--角色数据添加-->
+    <insert id="roledataadd" parameterType="com.oa.model.OaRole">
+            insert into oa_role(role_id,role_name,role_nickname,role_description,role_status)
+            values(#{roleId},#{roleName},#{roleNickname},#{roleDescription},1)
+    </insert>
+
+    <!--角色权限数据回调-->
+    <select id="autroleQuery" resultType="com.oa.model.OaAuthorityRole">
+            select * from oa_authority_role where role_id = #{roleId}
+    </select>
+
+    <!--角色表修改数据上传-->
+    <update id="roleUpdate" parameterType="com.oa.model.OaRole">
+            update oa_role
+            <set>
+                <if test="roleName != null and roleName != ''">
+                    role_name = #{roleName},
+                </if>
+                <if test="roleNickname != null and roleNickname != ''">
+                    role_nickname = #{roleNickname},
+                </if>
+                <if test="roleDescription != null and roleDescription != ''">
+                    role_description = #{roleDescription}
+                </if>
+            </set>
+            where role_id = #{roleId}
+    </update>
+
+    <!--角色删除--><!--删除角色需要判断角色和职工关联表是否存在已经被关联，但马上要被执行删除操作的角色ID，如果存在就执行删除操作，如果不存在，就只执行删除角色表的删除角色操作-->
+    <update id="roledel" parameterType="int">
+            update oa_role set role_status = 0 where role_id = #{roleId}
+    </update>
+    <!--判断关联表是否存在将要执行的删除项的角色表的角色ID-->
+    <select id="delsele" resultType="int">
+            select count(*) from oa_role_staff where role_id = #{roleId}
+    </select>
+    <!--如果关联表中存在被关联的将要被删除项的角色ID就删除-->
+    <delete id="deleterole" parameterType="com.oa.model.OaRoleStaff">
+            delete from oa_role_staff where role_id = #{roleId}
+    </delete>
+    <!--↑==========================================================================================================================================↑-->
+
+    <!--权限ztree列表数据查询-->
+    <select id="authoritytreeQuery" resultType="com.oa.model.OaAuthority">
+        select authority_id,authority_list,pid,authority_level,open from oa_authority where type = 'E1' and status != 0
+    </select>
+
+    <!--添加权限节点操作-->
+    <insert id="authorityAdd" parameterType="com.oa.model.OaAuthority">
+        insert into oa_authority(authority_list,pid,authority_permission,authority_url,type,status)
+        values(#{authorityList},#{pId},#{authorityPermission},#{authorityUrl},'E1',1)
+    </insert>
+
+    <!--删除节点操作-->
+    <update id="ztreedelNode" parameterType="int">
+        update oa_authority set status = '0' where authority_id = #{authorityId}
+    </update>
+
+    <!--修改前回调数据-->
+    <select id="updateQuery" resultType="com.oa.model.OaAuthority">
+        select authority_id,authority_list,pid,authority_permission,authority_url from oa_authority where authority_id = #{id}
+    </select>
+    <!--修改后数据提交-->
+    <update id="updateload" parameterType="com.oa.model.OaAuthority">
+            update oa_authority
+                <set>
+                    <if test="authorityId != null and authorityId != ''">
+                        authority_id = #{authorityId},
+                    </if>
+                    <if test="authorityList != null and authorityList != ''">
+                        authority_list = #{authorityList},
+                    </if>
+                    <if test="authorityUrl != null and authorityUrl != ''">
+                        authority_url = #{authorityUrl},
+                    </if>
+                    <if test="authorityPermission != null and authorityPermission != ''">
+                        authority_permission = #{authorityPermission},
+                    </if>
+                    <if test="pId != null and pId != ''">
+                        pid = #{pId}
+                    </if>
+                </set>
+            where authority_id = #{authorityId}
+    </update>
+
+    <!--权限节点删除-->
+    <update id="delNodes" parameterType="com.oa.model.OaAuthority">
+        update oa_authority set status = 0 where authority_id = #{id}
+    </update>
+
+    <!--权限表查询-->
+    <select id="authorityQuery" resultType="com.oa.model.OaAuthority">
+        select * from oa_authority where status != 0 and pid = #{pId}
+    </select>
+
+    <!--修改执行时删除-->
+    <delete id="delaut" parameterType="int">
+            delete from oa_authority_role where role_id = #{roleId}
+    </delete>
+
+    <!--角色权限中间表数据添加-->
+    <insert id="insaut" parameterType="com.oa.model.OaAuthorityRole">
+            insert into oa_authority_role(role_id,authority_id) values
+                <foreach collection="authorityId" item="authorityId" separator =",">
+                       (#{roleId},#{authorityId})
+                </foreach>
+    </insert>
+
+</mapper>

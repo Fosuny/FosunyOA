@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oa.dao.LoginMapper">
+
+    <!--查询用户名-->
+    <select id="usernameQuery" resultType="com.oa.model.OaStaff">
+            select s.staff_name from oa_user u join oa_staff s on s.staff_users_id = u.user_id where u.user_login = #{userLogin}
+    </select>
+
+    <!--查询用户头像-->
+    <select id="useravatar" resultType="com.oa.model.OaUser">
+            select * from oa_user where user_login = #{userLogin}
+    </select>
+
+    <!--查询用户表所有数据-->
+    <select id="userQuery" resultType="com.oa.model.OaUser">
+            select * from oa_user where user_login = #{username}
+    </select>
+
+    <!--查询角色英文昵称和权限表权限字符串-->
+    <select id="roleauthQuery" resultType="com.oa.model.OaRole">
+            select r.role_nickname as roleNickname,a.authority_permission as roleDescription
+            from oa_staff s join oa_role r join oa_authority a join oa_role_staff rs join oa_authority_role ar join oa_user u
+            on (s.staff_id = rs.staff_id and r.role_id = rs.role_id and r.role_id = ar.role_id and a.authority_id = ar.authority_id and s.staff_users_id = u.user_id)
+            where user_login = #{primaryPrincipal}
+    </select>
+
+</mapper>
